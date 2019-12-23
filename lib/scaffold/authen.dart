@@ -1,3 +1,5 @@
+import 'package:chaotot/scaffold/register.dart';
+import 'package:chaotot/utility/my_style.dart';
 import 'package:flutter/material.dart';
 
 class Authen extends StatefulWidget {
@@ -19,10 +21,10 @@ class _AuthenState extends State<Authen> {
   Widget signInButton() {
     return RaisedButton(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(120.0)),
-      color: Colors.blue[200],
+      color: MyStyle().mainColor,
       child: Text(
         'Sign In',
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(color: MyStyle().textButtonColor),
       ),
       onPressed: () {},
     );
@@ -32,7 +34,15 @@ class _AuthenState extends State<Authen> {
     return OutlineButton(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(120.0)),
       child: Text('Sign Up'),
-      onPressed: () {},
+      onPressed: () {
+        print('You Print Sign Up');
+
+        MaterialPageRoute materialPageRoute =
+            MaterialPageRoute(builder: (BuildContext buildContext) {
+          return Register();
+        });
+        Navigator.of(context).push(materialPageRoute);
+      },
     );
   }
 
@@ -96,7 +106,7 @@ class _AuthenState extends State<Authen> {
         ),
         child: Center(
           child: SingleChildScrollView(
-                      child: Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 showLogo(),
