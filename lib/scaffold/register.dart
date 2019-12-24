@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:math';
 
@@ -16,7 +15,7 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   // Field
   File file;
-  String name, email, password;
+  String name, email, password, avatar;
   final formKey = GlobalKey<FormState>();
 
   // Medthod
@@ -189,14 +188,26 @@ class _RegisterState extends State<Register> {
     print('avatar' + i.toString());
 
     String urlApi = 'http://androidthai.in.th/tot/saveFileChao.php';
+    avatar = namePicture;
+
     try {
       Map<String, dynamic> map = Map();
       map['file'] = UploadFileInfo(file, namePicture);
       FormData formData = FormData.from(map);
       Response response = await Dio().post(urlApi, data: formData);
       print('response = $response');
-    } catch (e) {
-    }
+
+      var result = response.data;
+      print('message = $result[\'message\']');
+
+      if (result['message'] == 'File uploaded successfully') {
+        print(result['message']);
+        insertDataToDatabase();
+      } else {
+        print('Cannot upload');
+        normalDialog(context, 'Failed', 'Cannot upload your picture');
+      }
+    } catch (e) {}
   }
 
   @override
@@ -220,5 +231,18 @@ class _RegisterState extends State<Register> {
         ),
       ),
     );
+  }
+
+  Future<void> insertDataToDatabase()async{
+
+    String url = 'http://androidthai.in.th/tot/addDataMaster.php?isAdd=true&Name=$name&User=$email&Password=$password&Avatar=$avatar';
+
+    Response response = await Dio().get(url);
+    if (response.data.toString() == 'true') {
+      Navigator.of(context).pop();
+    } else {
+      normalDialog(context, 'Fail!!', 'ลงทะเบียนไม่สำเร็จเว่ย!');
+    }
+
   }
 }

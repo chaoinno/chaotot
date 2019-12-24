@@ -1,5 +1,11 @@
+import 'dart:convert';
+
+import 'package:chaotot/models/user_model.dart';
+import 'package:chaotot/scaffold/my_service.dart';
 import 'package:chaotot/scaffold/register.dart';
 import 'package:chaotot/utility/my_style.dart';
+import 'package:chaotot/utility/normal_dialog.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 class Authen extends StatefulWidget {
@@ -9,6 +15,8 @@ class Authen extends StatefulWidget {
 
 class _AuthenState extends State<Authen> {
   // Feild
+  String username, password;
+  final formKey = GlobalKey<FormState>();
 
   // Method
   Widget mySizeBox() {
@@ -24,10 +32,47 @@ class _AuthenState extends State<Authen> {
       color: MyStyle().mainColor,
       child: Text(
         'Sign In',
-        style: TextStyle(color: MyStyle().textButtonColor),
+        style: TextStyle(color: Colors.white),
       ),
-      onPressed: () {},
+      onPressed: () {
+        formKey.currentState.save();
+        if (username.isEmpty || password.isEmpty) {
+          normalDialog(context, 'Worning!', 'เฮ่ย! ลืมกรอกไรป่าว');
+        } else {
+          checkAuthen();
+        }
+      },
     );
+  }
+
+  Future<void> checkAuthen() async {
+    String url =
+        'http://androidthai.in.th/tot/getUserWhereUserMaster.php?isAdd=true&User=$username&Password=$password';
+
+    Response response = await Dio().get(url);
+    var results = json.decode(response.data);
+
+    if (results.toString() == 'null') {
+      normalDialog(context, 'Fail!!', 'ไม่พบข้อมูลเว่ย!');
+    } else {
+      for (var map in results) {
+        UserModel userModel = UserModel.fromJSON(map);
+        if (password == userModel.password) {
+          print('Welcome ${userModel.name}');
+
+          MaterialPageRoute materialPageRoute =
+              MaterialPageRoute(builder: (BuildContext buildContext) {
+            return MyService();
+          });
+          Navigator.of(context).pushAndRemoveUntil(materialPageRoute,
+              (Route<dynamic> route) {
+            return false;
+          });
+        } else {
+          normalDialog(context, 'Fail!!', 'รหัสผ่านผิด ไองามไส้');
+        }
+      }
+    }
   }
 
   Widget signUpButton() {
@@ -61,7 +106,14 @@ class _AuthenState extends State<Authen> {
     return Container(
       width: MediaQuery.of(context).size.width * 0.7,
       child: TextFormField(
-        decoration: InputDecoration(labelText: 'User:'),
+        onSaved: (String string) {
+          username = string.trim();
+        },
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: MyStyle().textButtonColor)),
+          hintText: 'User :',
+        ),
       ),
     );
   }
@@ -70,7 +122,14 @@ class _AuthenState extends State<Authen> {
     return Container(
       width: MediaQuery.of(context).size.width * 0.7,
       child: TextFormField(
-        decoration: InputDecoration(labelText: 'Password:'),
+        onSaved: (String string) {
+          password = string.trim();
+        },
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: MyStyle().textButtonColor)),
+          hintText: 'Password :',
+        ),
         obscureText: true,
       ),
     );
@@ -106,15 +165,22 @@ class _AuthenState extends State<Authen> {
         ),
         child: Center(
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                showLogo(),
-                showAppName(),
-                userForm(),
-                passwordForm(),
-                showButtons(),
-              ],
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  showLogo(),
+                  mySizeBox(),
+                  showAppName(),
+                  mySizeBox(),
+                  userForm(),
+                  mySizeBox(),
+                  passwordForm(),
+                  mySizeBox(),
+                  showButtons(),
+                ],
+              ),
             ),
           ),
         ),
