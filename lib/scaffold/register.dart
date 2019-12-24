@@ -1,7 +1,10 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:chaotot/utility/my_style.dart';
+import 'package:chaotot/utility/normal_dialog.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -13,6 +16,8 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   // Field
   File file;
+  String name, email, password;
+  final formKey = GlobalKey<FormState>();
 
   // Medthod
   Widget nameForm() {
@@ -24,6 +29,9 @@ class _RegisterState extends State<Register> {
         Container(
           width: MediaQuery.of(context).size.width * 0.8,
           child: TextFormField(
+            onSaved: (String string) {
+              name = string.trim();
+            },
             decoration: InputDecoration(
                 hintText: 'ชื่อเข้าโรงเรียนนะเว้ย',
                 helperText: 'กรอกดิวะ ชื่ออ่ะ',
@@ -41,7 +49,7 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  Widget userForm() {
+  Widget emailForm() {
     Color color = Colors.purple;
 
     return Row(
@@ -50,6 +58,9 @@ class _RegisterState extends State<Register> {
         Container(
           width: MediaQuery.of(context).size.width * 0.8,
           child: TextFormField(
+            onSaved: (String string) {
+              email = string.trim();
+            },
             decoration: InputDecoration(
                 hintText: 'เมลแท้นะเว้ย',
                 helperText: 'กรอกดิวะ',
@@ -76,6 +87,9 @@ class _RegisterState extends State<Register> {
         Container(
           width: MediaQuery.of(context).size.width * 0.8,
           child: TextFormField(
+            onSaved: (String string) {
+              password = string.trim();
+            },
             decoration: InputDecoration(
                 hintText: 'อย่าให้คนเห็นนะเว้ย',
                 helperText: 'กรอกดิวะ',
@@ -123,7 +137,6 @@ class _RegisterState extends State<Register> {
     setState(() {
       file = object;
     });
-
   }
 
   Widget showButtons() {
@@ -150,8 +163,40 @@ class _RegisterState extends State<Register> {
     return IconButton(
       icon: Icon(Icons.cloud_upload),
       tooltip: 'Upload to Server',
-      onPressed: () {},
+      onPressed: () {
+        formKey.currentState.save();
+
+        if (file == null) {
+          print('Not choose Image');
+          normalDialog(context, 'รูปอ่ะๆ', 'เลือกรูปดิว๊าาา');
+        } else if (name.isEmpty) {
+          normalDialog(context, 'ชื่ออ่ะๆ', 'กรอกดิว๊าาาาา');
+        } else if (email.isEmpty) {
+          normalDialog(context, 'เมลอ่ะๆ', 'กรอกดิว๊าาาาา');
+        } else if (password.length < 6) {
+          normalDialog(context, 'พาสเวร์ดอ่ะๆ', 'ตั้งยากๆดิว๊าาาาา');
+        } else {
+          uploadPictureToServer();
+        }
+      },
     );
+  }
+
+  Future<void> uploadPictureToServer() async {
+    Random random = Random();
+    int i = random.nextInt(100000);
+    String namePicture = 'avatar$i.jpg';
+    print('avatar' + i.toString());
+
+    String urlApi = 'http://androidthai.in.th/tot/saveFileChao.php';
+    try {
+      Map<String, dynamic> map = Map();
+      map['file'] = UploadFileInfo(file, namePicture);
+      FormData formData = FormData.from(map);
+      Response response = await Dio().post(urlApi, data: formData);
+      print('response = $response');
+    } catch (e) {
+    }
   }
 
   @override
@@ -162,14 +207,17 @@ class _RegisterState extends State<Register> {
         backgroundColor: MyStyle().mainColor,
         title: Text('Register'),
       ),
-      body: ListView(
-        children: <Widget>[
-          showAvatar(),
-          showButtons(),
-          nameForm(),
-          userForm(),
-          passwordForm(),
-        ],
+      body: Form(
+        key: formKey,
+        child: ListView(
+          children: <Widget>[
+            showAvatar(),
+            showButtons(),
+            nameForm(),
+            emailForm(),
+            passwordForm(),
+          ],
+        ),
       ),
     );
   }
