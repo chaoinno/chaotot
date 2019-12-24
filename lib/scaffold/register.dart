@@ -1,5 +1,9 @@
+import 'dart:ffi';
+import 'dart:io';
+
 import 'package:chaotot/utility/my_style.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Register extends StatefulWidget {
   @override
@@ -8,6 +12,7 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   // Field
+  File file;
 
   // Medthod
   Widget nameForm() {
@@ -52,7 +57,7 @@ class _RegisterState extends State<Register> {
                 labelText: 'Email :',
                 labelStyle: TextStyle(color: color),
                 icon: Icon(
-                  Icons.account_box,
+                  Icons.mail,
                   size: 36.0,
                   color: color,
                 )),
@@ -92,7 +97,9 @@ class _RegisterState extends State<Register> {
     return OutlineButton.icon(
       icon: Icon(Icons.add_photo_alternate),
       label: Text('Gallery'),
-      onPressed: () {},
+      onPressed: () {
+        cameraAndGalleryThread(ImageSource.gallery);
+      },
     );
   }
 
@@ -100,8 +107,23 @@ class _RegisterState extends State<Register> {
     return OutlineButton.icon(
       icon: Icon(Icons.add_a_photo),
       label: Text('Camera'),
-      onPressed: () {},
+      onPressed: () {
+        cameraAndGalleryThread(ImageSource.camera);
+      },
     );
+  }
+
+  Future<void> cameraAndGalleryThread(ImageSource imageSource) async {
+    var object = await ImagePicker.pickImage(
+      source: imageSource,
+      maxWidth: 800.0,
+      maxHeight: 600.0,
+    );
+
+    setState(() {
+      file = object;
+    });
+
   }
 
   Widget showButtons() {
@@ -115,10 +137,12 @@ class _RegisterState extends State<Register> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.4,
       width: MediaQuery.of(context).size.height * 0.9,
-      child: Image.asset(
-        'images/avatar.png',
-        fit: BoxFit.contain,
-      ),
+      child: file == null
+          ? Image.asset(
+              'images/avatar.png',
+              fit: BoxFit.contain,
+            )
+          : Image.file(file),
     );
   }
 
