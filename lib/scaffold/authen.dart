@@ -40,9 +40,21 @@ class _AuthenState extends State<Authen> {
           normalDialog(context, 'Worning!', 'เฮ่ย! ลืมกรอกไรป่าว');
         } else {
           checkAuthen();
+          // checkAuthenWithPost();
         }
       },
     );
+  }
+
+  Future<void> checkAuthenWithPost() async {
+    String url = 'http://iservice.totinnovate.com/WebAPI/LoginPost';
+    Map<String, dynamic> map = Map();
+    map['UserName'] = username;
+    map['Password'] = password;
+
+    Response response = await Dio().post(url, data: map);
+    // var results = json.decode(response.data);
+    print(response);
   }
 
   Future<void> checkAuthen() async {
@@ -62,7 +74,9 @@ class _AuthenState extends State<Authen> {
 
           MaterialPageRoute materialPageRoute =
               MaterialPageRoute(builder: (BuildContext buildContext) {
-            return MyService();
+            return MyService(
+              userModel: userModel,
+            );
           });
           Navigator.of(context).pushAndRemoveUntil(materialPageRoute,
               (Route<dynamic> route) {
